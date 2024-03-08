@@ -22,16 +22,16 @@ public class Home extends AppCompatActivity {
         buttonOPT.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                startActivity(new Intent(Home.this,Phoneotp.class));
+                startActivity(new Intent(Home.this,Add_city.class));
             }
         });
 
         buttonLogout.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                startActivity(new Intent(Home.this,Phoneotp.class));
+                startActivity(new Intent(Home.this,MH_city.class));
 
-                startActivity(new Intent(Home.this,DangNhap.class));
+           //     startActivity(new Intent(Home.this,DangNhap.class));
             }
         });
     }

@@ -17,6 +17,8 @@ import com.google.android.gms.tasks.Task;
 import com.google.firebase.FirebaseException;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.PhoneAuthCredential;
 import com.google.firebase.auth.PhoneAuthOptions;
 import com.google.firebase.auth.PhoneAuthProvider;
@@ -43,13 +45,13 @@ public class Phoneotp extends AppCompatActivity {
         btnGetOpt.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                String phoneNumber = edPhone.getText().toString();
+                String phoneNumber = edPhone.getText().toString().trim();
 
                 if (phoneNumber.equals("")) {
                     Toast.makeText(Phoneotp.this, "Please enter your phone number", Toast.LENGTH_SHORT).show();
                     return;
                 } else {
-                    getOtp(phoneNumber);
+                    getOTP(phoneNumber);
                 }
             }
         });
@@ -70,8 +72,7 @@ public class Phoneotp extends AppCompatActivity {
 
             @Override
             public void onVerificationFailed(@NonNull FirebaseException e) {
-                Toast.makeText(Phoneotp.this, "Failed"+e, Toast.LENGTH_SHORT).show();
-                Log.d("zzzzzzzzzz", "onVerificationFailed: "+e);
+                Toast.makeText(Phoneotp.this, "Đã vượt quá số lượt gửi mã. vui lòng thử lại sau!"+e, Toast.LENGTH_SHORT).show();
             }
 
             @Override
@@ -85,37 +86,40 @@ public class Phoneotp extends AppCompatActivity {
 
     private void sigInWithCredential(PhoneAuthCredential phoneAuthCredential) {
 
-        firebaseAuth.signInWithCredential(phoneAuthCredential).addOnCompleteListener(Phoneotp.this, new OnCompleteListener<AuthResult>() {
-            @Override
-            public void onComplete(@NonNull Task<AuthResult> task) {
-                if (task.isSuccessful()) {
-                    Toast.makeText(Phoneotp.this, "Login successfully", Toast.LENGTH_SHORT).show();
-                    startActivity(new Intent(Phoneotp.this, MainActivity.class));
-                } else {
-                    Toast.makeText(Phoneotp.this, "Login Failed", Toast.LENGTH_SHORT).show();
-                }
-            }
-        });
+        firebaseAuth.signInWithCredential(phoneAuthCredential)
+                .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
+                    @Override
+                    public void onComplete(@NonNull Task<AuthResult> task) {
+                        if (task.isSuccessful()) {
+                            // Sign in success, update UI with the signed-in user's information
+                            Toast.makeText(Phoneotp.this, "Đăng Nhập Thành Công!", Toast.LENGTH_SHORT).show();
+                            Intent intent = new Intent(Phoneotp.this, Home.class);
+                            startActivity(intent);
 
-
+                            FirebaseUser user = task.getResult().getUser();
+                            // Update UI
+                        } else {
+                            // Sign in failed, display a message and update the UI
+                            edOTP.setError("OTP Không Đúng");
+                            if (task.getException() instanceof FirebaseAuthInvalidCredentialsException) {
+                                // The verification code entered was invalid
+                            }
+                        }
+                    }
+                });
     }
 
-    //    private void getOtp(String phoneNumber) {
-//        PhoneAuthOptions options = PhoneAuthOptions.newBuilder(firebaseAuth)
-//                .setPhoneNumber("+84" + phoneNumber)
-//                .setTimeout(60L, TimeUnit.SECONDS)
-//                .setActivity(this)
-//                .setCallbacks(callbacks)
-//                .build();
-//        PhoneAuthProvider.verifyPhoneNumber(options);
-//    }
-    private void getOtp(String phoneNumber) {
-        PhoneAuthOptions options = PhoneAuthOptions.newBuilder(firebaseAuth)
-                .setPhoneNumber("+84" + phoneNumber)
-                .setTimeout(60l, TimeUnit.SECONDS)
-                .setActivity(this)
-                .setCallbacks(callbacks)
-                .build();
+
+
+    private void getOTP (String phoneNumber){
+        PhoneAuthOptions options =
+                PhoneAuthOptions.newBuilder(firebaseAuth)
+                        .setPhoneNumber("+84"+phoneNumber)       // Phone number to verify
+                        .setTimeout(60L, TimeUnit.SECONDS) // Timeout and unit
+                        .setActivity(this)                 // (optional) Activity for callback binding
+                        // If no activity is passed, reCAPTCHA verification can not be used.
+                        .setCallbacks(callbacks)          // OnVerificationStateChangedCallbacks
+                        .build();
         PhoneAuthProvider.verifyPhoneNumber(options);
     }
 }
